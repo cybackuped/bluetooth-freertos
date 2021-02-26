@@ -64,7 +64,7 @@ typedef struct
 /******************************************************************************
  *                           Variables Definitions
  ******************************************************************************/
-bt_fw_download_cb bt_fwdl_cb = {.state = BT_POST_RESET_STATE_IDLE};
+bt_fw_download_cb bt_fwdl_cb = {0};
 
 extern const char    brcm_patch_version[];
 extern const uint8_t brcm_patchram_buf[];
@@ -151,7 +151,7 @@ void bt_baudrate_updated_cback (wiced_bt_dev_vendor_specific_command_complete_pa
                 MAIN_TRACE_DEBUG("bt_baudrate_updated_cback(): post-reset process is done");
                 bt_fwdl_cb.state = BT_POST_RESET_STATE_DONE;
 
-                wiced_bt_continue_reset();
+                wiced_continue_reset();
             }
             break;
         default:
@@ -199,7 +199,7 @@ void bt_fw_download_complete_cback(cybt_prm_status_t status)
             MAIN_TRACE_DEBUG("bt_fw_download_complete_cback(): post-reset process is Done");
 
             bt_fwdl_cb.state = BT_POST_RESET_STATE_DONE;
-            wiced_bt_continue_reset();
+            wiced_continue_reset();
         }
     }
     else

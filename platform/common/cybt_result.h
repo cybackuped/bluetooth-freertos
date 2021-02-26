@@ -29,7 +29,6 @@
 /*****************************************************************************
  *                           Type Definitions
  ****************************************************************************/
-/** BT result code */
 typedef enum
 {
     CYBT_SUCCESS = 0,
@@ -53,9 +52,6 @@ typedef enum
     CYBT_ERR_MEMPOOL_NOT_INITIALIZE,
     CYBT_ERR_QUEUE_ALMOST_FULL,
     CYBT_ERR_QUEUE_FULL,
-    CYBT_ERR_GPIO_POWER_INIT_FAILED,
-    CYBT_ERR_GPIO_DEV_WAKE_INIT_FAILED,
-    CYBT_ERR_GPIO_HOST_WAKE_INIT_FAILED,
     CYBT_ERR_GENERIC
 } cybt_result_t;
 

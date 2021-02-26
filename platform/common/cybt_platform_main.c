@@ -56,6 +56,7 @@
  *****************************************************************************/
 typedef struct
 {
+    uint32_t                      stack_heap_size;
     wiced_bt_management_cback_t   *p_app_management_callback;
     const cybt_platform_config_t  *p_bt_platform_cfg;
     bool                          is_sleep_mode_enabled;
@@ -71,6 +72,7 @@ cybt_platform_main_cb_t cybt_main_cb = {0};
  *                          Function Declarations
  ******************************************************************************/
 extern void host_stack_platform_interface_init(void);
+extern void host_stack_platform_interface_deinit(void);
 
 
 /******************************************************************************
@@ -171,30 +173,14 @@ wiced_bool_t wiced_stack_event_handler_cback (uint8_t *p_event)
     return WICED_FALSE;
 }
 
-wiced_result_t cybt_core_management_cback( wiced_bt_management_evt_t event, wiced_bt_management_evt_data_t *p_event_data )
-{
-    wiced_result_t result = WICED_BT_SUCCESS;
-
-    if(event == BTM_DISABLED_EVT)
-    {
-        wiced_bt_stack_platform_deinit();
-    }
-
-    if(cybt_main_cb.p_app_management_callback)
-    {
-        result = cybt_main_cb.p_app_management_callback(event, p_event_data);
-    }
-
-    return result;
-}
-
 void cybt_core_stack_init(void)
 {
     /* Start the stack */
-    wiced_bt_stack_init_internal(cybt_core_management_cback,
-                                 wiced_post_stack_init_cback,
-                                 wiced_stack_event_handler_cback
-                                );
+    wiced_stack_init_internal(cybt_main_cb.p_app_management_callback,
+                              wiced_post_stack_init_cback,
+                              wiced_stack_event_handler_cback,
+                              cybt_main_cb.stack_heap_size
+                             );
 }
 
 wiced_result_t wiced_bt_stack_init(wiced_bt_management_cback_t *p_bt_management_cback,
@@ -212,7 +198,8 @@ wiced_result_t wiced_bt_stack_init(wiced_bt_management_cback_t *p_bt_management_
     host_stack_platform_interface_init();
 
     /* Configure the stack */
-    wiced_bt_set_stack_config(p_bt_cfg_settings);
+    wiced_set_stack_config(p_bt_cfg_settings);
+    cybt_main_cb.stack_heap_size = p_bt_cfg_settings->stack_scratch_size ? p_bt_cfg_settings->stack_scratch_size : 2000;
 
     cybt_platform_task_init();
 
@@ -222,6 +209,14 @@ wiced_result_t wiced_bt_stack_init(wiced_bt_management_cback_t *p_bt_management_
 wiced_result_t wiced_bt_stack_deinit( void )
 {
     cybt_platform_task_deinit();
+
+    host_stack_platform_interface_deinit();
+
+    if(cybt_main_cb.p_app_management_callback)
+    {
+        cybt_main_cb.p_app_management_callback(BTM_DISABLED_EVT, NULL);
+    }
+    cybt_main_cb.p_app_management_callback = NULL;
 
     cybt_platform_deinit();
 
